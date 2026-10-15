@@ -46,10 +46,17 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    margin: 0; background: var(--page); color: var(--fg);
+    margin: 0; background-color: var(--page); color: var(--fg);
+    background-image:
+      radial-gradient(ellipse 65% 55% at 4% 6%,  rgba(160, 100, 220, .18) 0%, transparent 100%),
+      radial-gradient(ellipse 55% 65% at 96% 94%, rgba(240, 190, 50,  .15) 0%, transparent 100%);
     font-family: var(--font); font-size: var(--body-size); line-height: 1.65;
-    transition: background .3s, color .3s;
+    transition: background-color .3s, color .3s;
   }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) body { background-image: none; }
+  }
+  :root[data-theme="dark"] body { background-image: none; }
 
   main {
     position: relative; z-index: 1;
@@ -207,7 +214,7 @@
   <section id="about">
     <!-- TODO: replace with your own short bio -->
     <p>
-      I am an Applied Scientist at Amazon and a researcher with a PhD from the Autonomous University of Madrid. My work centers on probabilistic machine learning, including calibration, uncertainty quantification, and Bayesian methods, with applications spanning speech, vision, and language models. I am currently interested in generative models and their application to action prediction and policy learning.
+      I am an Applied Scientist at Amazon working on VLMs and other generative models for image analysis. I did my PhD at the Universidad Autónoma de Madrid under the supervision of Daniel Ramos. I have also taught Machine Learning courses at CUNEF Universidad. My work centers on probabilistic machine learning, including calibration, uncertainty quantification, and Bayesian methods, with applications spanning speech, vision, and language models. I am currently interested in generative models and their application to action prediction and policy learning.
     </p>
 
     <ul class="links">
@@ -292,6 +299,33 @@
     <!-- <p class="more" id="repos-more" hidden><a id="repos-all" href="#" target="_blank" rel="noopener">All repositories on GitHub →</a></p> -->
   </section>
 
+  <section id="publications">
+    <h2>Selected Publications</h2>
+    <ul class="entries">
+      <li>
+        <a class="title" href="https://link.springer.com/article/10.1007/s00521-024-09505-4" target="_blank" rel="noopener">Adaptive Temperature Scaling for Robust Calibration of Deep Neural Networks</a>
+        <p class="desc">SA Balanya, J Maroñas, D Ramos · <em>Neural Computing and Applications</em>, 2024</p>
+      </li>
+      <li>
+        <a class="title" href="https://www.sciencedirect.com/science/article/pii/S0169743922001630" target="_blank" rel="noopener">Gaussian Processes for Radiation Dose Prediction in Nuclear Power Plant Reactors</a>
+        <p class="desc">SA Balanya, D Ramos, P Ramirez-Hereza, DT Toledano et al. · <em>Chemometrics and Intelligent Laboratory Systems</em>, 2022</p>
+      </li>
+      <li>
+        <a class="title" href="https://www.sciencedirect.com/science/article/pii/S0379073823001858" target="_blank" rel="noopener">Gaussianization of LA-ICP-MS Features to Improve Calibration in Forensic Glass Comparison</a>
+        <p class="desc">P Ramirez-Hereza, D Ramos, J Maroñas, SA Balanya, J Almirall · <em>Forensic Science International</em>, 2023</p>
+      </li>
+      <li>
+        <a class="title" href="https://arxiv.org/abs/2601.04200" target="_blank" rel="noopener">Attribute-Aware Controlled Product Generation with LLMs for E-commerce</a>
+        <p class="desc">V Negri, VM Gómez, SA Balanya, S Rajaram · <em>arXiv preprint</em>, 2025</p>
+      </li>
+      <li>
+        <a class="title" href="https://arxiv.org/abs/2511.22696" target="_blank" rel="noopener">Probabilistic Fusion and Calibration of Neural Speaker Diarization Models</a>
+        <p class="desc">JI Alvarez-Trejos, SA Balanya, D Ramos, A Lozano-Diez · <em>arXiv preprint</em>, 2025</p>
+      </li>
+    </ul>
+    <p class="more"><a href="https://scholar.google.com/citations?user=P9hYX7kAAAAJ&hl=en" target="_blank" rel="noopener">All publications on Google Scholar →</a></p>
+  </section>
+
   <section id="writing">
     <h2>Writing</h2>
     <p class="soon">Blog posts coming soon</p>
@@ -363,7 +397,7 @@
     const root = document.documentElement;
     try { const t = localStorage.getItem('theme'); if (t) root.dataset.theme = t; } catch (e) {}
     $('#theme').addEventListener('click', () => {
-      const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: light)').matches;
       root.dataset.theme = isDark ? 'light' : 'dark';
       try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
     });
