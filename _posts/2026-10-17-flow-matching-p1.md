@@ -4,7 +4,7 @@ description: First part of a series on learnings from implementing flow matching
 math: true
 ---
 
-This is the first part of a series of posts on learnings from implementing toy flow matching experiments. The goal is to share practical insights as a way for me to consolidate my understanding — and hopefully be useful to anyone getting their hands dirty with flow matching for the first time.
+This is the first part of a series of posts on learnings from implementing toy flow matching experiments. The goal is to share practical insights as a way for me to consolidate my understanding, and hopefully be useful to anyone getting their hands dirty with flow matching for the first time.
 
 ## Brief Overview of Flow Matching
 
@@ -24,13 +24,13 @@ The experiments below were done on two settings: a 2D two-moons dataset and MNIS
 
 The source distribution $p_0 = \mathcal{N}(\mu, \sigma^2 I)$ is a design choice, and it has a real effect on sample quality.
 
-Intuitively, smaller $\sigma$ means shorter, nearly straight training trajectories — easy to fit. But it also means noise samples cluster tightly together, which limits the diversity of generated outputs. Larger $\sigma$ gives the model more room to explore the space but produces longer, noisier paths that are harder to regress accurately.
+Intuitively, smaller $\sigma$ means shorter, nearly straight training trajectories that are easy to fit. But it also means noise samples cluster tightly together, which limits the diversity of generated outputs. Larger $\sigma$ gives the model more room to explore the space but produces longer, noisier paths that are harder to regress accurately.
 
 In the MNIST experiments I swept $\sigma$ across an order of magnitude and found a clear pattern: training loss decreases monotonically as $\sigma$ shrinks, but sample quality degrades at the extremes in both directions.
 
 ![Training Loss vs Variance](/assets/images/2026-10-17-flow-matching-p1/sigma_train_loss.png)
 
-The sweet spot in my experiments was around $\sigma \approx 0.05$–$0.1$. At $\sigma = 0.01$ the model fits the training distribution nearly perfectly but generates samples with little variety — essentially memorizing a tight cluster. At $\sigma = 1.0$ the paths are so noisy that the model struggles to converge at all. The right value will depend on your dataset and model capacity, but defaulting to $\sigma = 1$ (standard Gaussian) is likely suboptimal for structured data like images.
+The sweet spot in my experiments was around $\sigma \approx 0.05$–$0.1$. At $\sigma = 0.01$ the model fits the training distribution nearly perfectly but generates samples with little variety, essentially memorizing a tight cluster. At $\sigma = 1.0$ the paths are so noisy that the model struggles to converge at all. The right value will depend on your dataset and model capacity, but defaulting to $\sigma = 1$ (standard Gaussian) is likely suboptimal for structured data like images.
 
 ---
 
@@ -44,7 +44,7 @@ A better alternative is the midpoint method, which evaluates the velocity at the
 
 $$x_{t + \Delta t} = x_t + \Delta t \cdot v_\theta\!\left(x_t + \tfrac{\Delta t}{2} v_\theta(x_t, t),\; t + \tfrac{\Delta t}{2}\right)$$
 
-This costs 2 network evaluations per step instead of 1, but the accuracy improvement is dramatic. In the 2D experiments, achieving similar endpoint error required roughly 40 Euler steps versus only 5 midpoint steps — an 8× reduction in the number of steps for the same effective cost per step.
+This costs 2 network evaluations per step instead of 1, but the accuracy improvement is dramatic. In the 2D experiments, achieving similar endpoint error required roughly 40 Euler steps versus only 5 midpoint steps, an 8× reduction in the number of steps for the same effective cost per step.
 
 ![Midpoint vs Euler convergence](/assets/images/2026-10-17-flow-matching-p1/euler_v_mid.png)
 
@@ -66,7 +66,7 @@ If you're doing any FM inference and haven't switched from Euler, this is a free
 
 ## 3. Optimal Transport Coupling
 
-By default, training pairs each noise sample $x_0$ with a random data sample $x_1$ — what you'd get by simply shuffling a batch. The resulting interpolant trajectories $x_t$ can cross each other at arbitrary angles, and the velocity field has to be consistent with all of them simultaneously. This creates a harder learning problem.
+By default, training pairs each noise sample $x_0$ with a random data sample $x_1$, as you would get by simply shuffling a batch. The resulting interpolant trajectories $x_t$ can cross each other at arbitrary angles, and the velocity field has to be consistent with all of them simultaneously. This creates a harder learning problem.
 
 Optimal transport (OT) coupling fixes this by solving a matching problem: given a batch of noise samples and a batch of data samples, find the assignment that minimizes total squared distance. In practice, this is just a linear sum assignment solved with scipy:
 
@@ -83,7 +83,7 @@ The result is that each $x_0$ gets paired with the nearest (in batch) $x_1$, pro
 
 ![OT coupling vs random coupling in 2D](/assets/images/2026-10-17-flow-matching-p1/OT_example.png)
 
-On the left, random coupling produces crossing trajectories. On the right, OT coupling produces much more parallel paths that are easier to regress. In the 2D experiments, OT training also converged to a lower final loss and did so faster. The downside is the added per-step cost of solving the assignment problem, which scales as $O(n^3)$ — fine for moderate batch sizes, but something to watch at scale.
+On the left, random coupling produces crossing trajectories. On the right, OT coupling produces much more parallel paths that are easier to regress. In the 2D experiments, OT training also converged to a lower final loss and did so faster. The downside is the added per-step cost of solving the assignment problem, which scales as $O(n^3)$. This is fine for moderate batch sizes, but something to watch at scale.
 
 ---
 
@@ -157,13 +157,13 @@ In practice, however, the learned embeddings don't look like digits at all.
 
 ![Learned image embeddings](/assets/images/2026-10-17-flow-matching-p1/img_embeddings.png){:width="600"}
 
-They're not noise either — they have some structure — but there's no visual correspondence to the class they're supposed to represent. This makes sense in hindsight: the embeddings are optimized to minimize the flow matching loss, not to be interpretable to a human. The gradient signal pushes each $e_c$ toward whatever shift of $x_t$ makes the velocity regression easiest, which has no reason to align with what a digit looks like.
+They're not noise either; they have some structure, but there's no visual correspondence to the class they're supposed to represent. This makes sense in hindsight: the embeddings are optimized to minimize the flow matching loss, not to be interpretable to a human. The gradient signal pushes each $e_c$ toward whatever shift of $x_t$ makes the velocity regression easiest, which has no reason to align with what a digit looks like.
 
 The takeaway is that placing an embedding in a semantically meaningful space (pixel space) doesn't make it semantically meaningful. If interpretability is the goal, you need to add an explicit objective for it.
 
 ### Approach 3: Conditioning on the base distribution
 
-Both approaches above inject class information into the velocity field. There's a different angle: condition on the *source* distribution instead of the velocity field. Concretely, learn a class-specific mean $\mu_c$ for $p_0$ and sample $x_0 \sim \mathcal{N}(\mu_c, \sigma^2 I)$ at training and inference time — but keep the velocity field itself unconditional.
+Both approaches above inject class information into the velocity field. There's a different angle: condition on the *source* distribution instead of the velocity field. Concretely, learn a class-specific mean $\mu_c$ for $p_0$ and sample $x_0 \sim \mathcal{N}(\mu_c, \sigma^2 I)$ at training and inference time, while keeping the velocity field itself unconditional.
 
 ```python
 class CondBaseFlow(nn.Module):
@@ -205,7 +205,7 @@ This actually works. The model generates coherent class-conditional samples from
 
 ![Examples of image generated via base distribution conditioning](/assets/images/2026-10-17-flow-matching-p1/base_dist_cond_samples.png){:width="600"}
 
-The tradeoff is that the class information is baked into the sampling procedure rather than the model, which makes it less flexible — you can't easily do things like interpolate between classes or do classifier-free guidance. But it's a clean and surprisingly effective trick.
+The tradeoff is that the class information is baked into the sampling procedure rather than the model, which makes it less flexible: you can't easily interpolate between classes or use classifier-free guidance. But it's a clean and surprisingly effective trick.
 
 ---
 
