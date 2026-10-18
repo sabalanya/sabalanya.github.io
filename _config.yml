@@ -1,0 +1,27 @@
+title: Sergio Álvarez Balanyá
+description: Personal academic website of Sergio Álvarez Balanyá.
+url: "https://sabalanya.github.io"
+baseurl: ""
+author:
+  name: Sergio Álvarez Balanyá
+
+permalink: /blog/:title/
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  math_engine: null   # leave $$...$$ for MathJax in the browser (see page.math in the layout)
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+defaults:
+  - scope: { path: "", type: posts }
+    values: { layout: post }
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor

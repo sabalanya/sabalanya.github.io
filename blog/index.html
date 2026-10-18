@@ -1,0 +1,22 @@
+---
+layout: default
+title: Blog
+permalink: /blog/
+description: Notes and write-ups by Sergio Álvarez Balanyá.
+---
+<h1 class="page-title">Blog</h1>
+<p class="post-meta"><a href="{{ '/feed.xml' | relative_url }}">Subscribe via RSS</a></p>
+
+{% if site.posts.size > 0 %}
+<ul class="entries" style="margin-top: 24px">
+  {% for post in site.posts %}
+  <li>
+    <a class="title" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+    <span class="date">{{ post.date | date: "%b %-d, %Y" }}</span>
+    <p class="desc">{{ post.description | default: post.excerpt | strip_html | strip_newlines | truncate: 180 }}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="soon">First post coming soon</p>
+{% endif %}
