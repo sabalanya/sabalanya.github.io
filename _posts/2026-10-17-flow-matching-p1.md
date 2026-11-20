@@ -211,4 +211,4 @@ The tradeoff is that the class information is baked into the sampling procedure 
 
 ## What's Next
 
-Part 2 will go further: flow inversion (running the ODE backwards to encode real images into noise), mode identification with multimodal source distributions, and time embeddings as an alternative to passing $t$ as a raw scalar. More on that when the experiments are done.
+Part 2 moves flow matching into a VAE latent space and looks at how OT coupling interacts with class conditioning. After that, a later part will go further: flow inversion (running the ODE backwards to encode real images into noise), mode identification with multimodal source distributions, and time embeddings as an alternative to passing $t$ as a raw scalar. More on that when the experiments are done.
